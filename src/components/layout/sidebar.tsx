@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -11,8 +12,12 @@ import {
   ReceiptText,
   BarChart3,
   Settings,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { useSidebarStore } from '@/hooks/use-sidebar'
+import { Button } from '@/components/ui/button'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,25 +32,42 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { isCollapsed, toggleCollapse } = useSidebarStore()
 
   return (
     <>
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-30 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-        style={{ width: 'var(--sidebar-width)' }}
+        className={cn(
+          "hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-30 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] transition-all duration-200",
+          isCollapsed ? "w-16" : "w-[var(--sidebar-width)]"
+        )}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 h-[var(--header-height)] px-5 border-b border-[hsl(var(--border))]">
-          <div className="flex items-center justify-center w-7 h-7 rounded-[6px] bg-[hsl(var(--primary))]">
-            <ScanBarcode size={14} className="text-white" />
+        {/* Logo Header */}
+        <div className={cn(
+          "flex items-center h-[var(--header-height)] border-b border-[hsl(var(--border))] overflow-hidden transition-all duration-200",
+          isCollapsed ? "justify-center px-0" : "gap-2.5 px-4"
+        )}>
+          <div className="relative w-8 h-8 shrink-0 flex items-center justify-center">
+            <Image
+              src="/images/fondasi1.png"
+              alt="Fondasi Logo"
+              width={28}
+              height={28}
+              className="object-contain"
+              priority
+            />
           </div>
-          <span className="text-sm font-semibold tracking-tight">POS System</span>
+          {!isCollapsed && (
+            <span className="text-sm font-semibold tracking-tight text-[hsl(var(--foreground))] whitespace-nowrap">
+              Fondasi
+            </span>
+          )}
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 py-3 px-2 overflow-y-auto">
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               const Icon = item.icon
@@ -53,21 +75,36 @@ export function Sidebar() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    title={isCollapsed ? item.label : undefined}
                     className={cn(
-                      'flex items-center gap-2.5 px-3 py-2 rounded-[var(--radius)] text-sm transition-colors',
+                      'flex items-center rounded-[var(--radius)] text-sm transition-all duration-150',
+                      isCollapsed ? 'justify-center p-2.5' : 'gap-2.5 px-3 py-2',
                       isActive
                         ? 'bg-[hsl(var(--primary))] text-white font-medium'
                         : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]'
                     )}
                   >
                     <Icon size={16} className="shrink-0" />
-                    {item.label}
+                    {!isCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
                   </Link>
                 </li>
               )
             })}
           </ul>
         </nav>
+
+        {/* Collapse/Expand Toggle Button */}
+        <div className="p-2 border-t border-[hsl(var(--border))] flex justify-center">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={toggleCollapse}
+            className="w-full h-8 hover:bg-[hsl(var(--accent))] flex items-center justify-center rounded-[var(--radius)]"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+          </Button>
+        </div>
       </aside>
 
       {/* Mobile bottom navigation */}

@@ -65,8 +65,10 @@ class BrowserPrintService implements PrintService {
         </style>
       </head>
       <body>
-        <div class="center">
-          <div style="font-weight:bold;font-size:15px;">${settings.storeName.toUpperCase()}</div>
+        <div class="center" style="margin-bottom: 8px;">
+          <img src="/images/fondasi1.png" alt="Fondasi Creative Logo" style="height: 36px; object-fit: contain; margin-bottom: 4px;" />
+          <div style="font-weight:bold;font-size:15px;letter-spacing: 0.5px;">FONDASI CREATIVE</div>
+          <div style="font-weight:bold;font-size:12px;color:#333;">${settings.storeName.toUpperCase()}</div>
           <div style="font-size:11px;">${settings.storeAddress}</div>
           <div style="font-size:11px;">${settings.storePhone}</div>
         </div>
