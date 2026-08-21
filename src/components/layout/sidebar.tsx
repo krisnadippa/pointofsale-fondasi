@@ -38,10 +38,8 @@ export function Sidebar() {
     <>
       {/* Desktop sidebar */}
       <aside
-        className={cn(
-          "hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-30 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] transition-all duration-200",
-          isCollapsed ? "w-16" : "w-[var(--sidebar-width)]"
-        )}
+        className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-30 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] transition-all duration-200"
+        style={{ width: isCollapsed ? '64px' : 'var(--sidebar-width)' }}
       >
         {/* Logo Header */}
         <div className={cn(
@@ -49,13 +47,10 @@ export function Sidebar() {
           isCollapsed ? "justify-center px-0" : "gap-2.5 px-4"
         )}>
           <div className="relative w-8 h-8 shrink-0 flex items-center justify-center">
-            <Image
+            <img
               src="/images/fondasi1.png"
               alt="Fondasi Logo"
-              width={28}
-              height={28}
-              className="object-contain"
-              priority
+              style={{ width: '28px', height: '28px', objectFit: 'contain' }}
             />
           </div>
           {!isCollapsed && (
