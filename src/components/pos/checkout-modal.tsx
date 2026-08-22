@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CreditCard, Banknote, Smartphone, Building2, AlertCircle } from 'lucide-react'
+import { CreditCard, Banknote, Smartphone, Building2, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,6 +28,7 @@ const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: React.ElementTy
 export function CheckoutModal({ items, subtotal, onClose, onSuccess }: CheckoutModalProps) {
   const settings = getSettings()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
+  const [qrLoading, setQrLoading] = useState(true)
   const [paidInput, setPaidInput] = useState('')
   const [discount, setDiscount] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -107,7 +108,12 @@ export function CheckoutModal({ items, subtotal, onClose, onSuccess }: CheckoutM
                 return (
                   <button
                     key={pm.id}
-                    onClick={() => setPaymentMethod(pm.id)}
+                    onClick={() => {
+                      setPaymentMethod(pm.id)
+                      if (pm.id === 'qris') {
+                        setQrLoading(true)
+                      }
+                    }}
                     className={`flex flex-col items-center gap-1.5 p-3 rounded-[var(--radius)] border text-xs font-medium transition-all ${
                       paymentMethod === pm.id
                         ? 'border-[hsl(var(--primary))] bg-[hsl(221,83%,97%)] text-[hsl(var(--primary))]'
@@ -161,6 +167,35 @@ export function CheckoutModal({ items, subtotal, onClose, onSuccess }: CheckoutM
                   <span>Insufficient payment (need {formatRupiah(total - paid)} more)</span>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* QRIS payment display */}
+          {paymentMethod === 'qris' && (
+            <div className="flex flex-col items-center justify-center p-4 border border-[hsl(var(--border))] rounded-[var(--radius)] bg-[hsl(var(--muted))] space-y-3">
+              <p className="text-xs font-semibold text-[hsl(var(--muted-foreground))] text-center">
+                Pindai QRIS di bawah ini untuk membayar
+              </p>
+              <div className="relative bg-white p-3 rounded-lg shadow-sm border border-slate-200 w-[204px] h-[204px] flex items-center justify-center">
+                {qrLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg">
+                    <Loader2 className="w-7 h-7 text-[hsl(var(--primary))] animate-spin" />
+                    <span className="text-[10px] text-[hsl(var(--muted-foreground))] mt-2 font-medium">Generating QRIS...</span>
+                  </div>
+                )}
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                    `00020101021226300024ID.CO.DANA.WWW011893600911000000000052045999530336054${String(total).length.toString().padStart(2, '0')}${total}5802ID5908TokoAnda6007Jakarta6304ABCD`
+                  )}`}
+                  alt="QRIS Code"
+                  className={`w-[180px] h-[180px] transition-opacity duration-200 ${qrLoading ? 'opacity-0' : 'opacity-100'}`}
+                  onLoad={() => setQrLoading(false)}
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">Total Bayar</p>
+                <p className="text-lg font-bold text-[hsl(var(--primary))]">{formatRupiah(total)}</p>
+              </div>
             </div>
           )}
 
