@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BarcodeScanner } from '@/components/barcode/barcode-scanner'
-import { createProduct, updateProduct } from '@/services/product-service'
+import { createProduct, updateProduct, generateProductSku } from '@/services/product-service'
 import { toast } from '@/components/ui/toaster'
 import type { Product, Category } from '@/types/product'
 
@@ -18,6 +18,17 @@ interface ProductFormProps {
   categories: Category[]
   onClose: () => void
   onSaved: () => void
+}
+
+const formatThousand = (val: string | number) => {
+  if (val === undefined || val === null || val === '') return ''
+  const clean = String(val).replace(/\D/g, '')
+  if (!clean) return ''
+  return new Intl.NumberFormat('id-ID').format(Number(clean))
+}
+
+const parseThousand = (val: string) => {
+  return val.replace(/\D/g, '')
 }
 
 const UNITS = ['Pcs', 'Botol', 'Bungkus', 'Kaleng', 'Kg', 'Gram', 'Liter', 'Pak', 'Dus']
@@ -128,7 +139,23 @@ export function ProductForm({ isOpen, product, initialBarcode, categories, onClo
 
               {/* SKU */}
               <div className="space-y-1.5">
-                <Label htmlFor="pf-sku">SKU</Label>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="pf-sku">SKU</Label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (form.categoryId) {
+                        const generated = generateProductSku(form.categoryId)
+                        setForm((f) => ({ ...f, sku: generated }))
+                      } else {
+                        toast({ title: 'Please select a category first', variant: 'error' })
+                      }
+                    }}
+                    className="text-xs text-[hsl(var(--primary))] hover:underline font-medium"
+                  >
+                    Generate Otomatis
+                  </button>
+                </div>
                 <Input id="pf-sku" value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} placeholder="e.g. BEV-001" />
               </div>
 
@@ -159,13 +186,13 @@ export function ProductForm({ isOpen, product, initialBarcode, categories, onClo
               {/* Purchase Price */}
               <div className="space-y-1.5">
                 <Label htmlFor="pf-purchase">Purchase Price (Rp)</Label>
-                <Input id="pf-purchase" type="number" min="0" value={form.purchasePrice} onChange={(e) => setForm((f) => ({ ...f, purchasePrice: e.target.value }))} placeholder="0" />
+                <Input id="pf-purchase" type="text" value={formatThousand(form.purchasePrice)} onChange={(e) => setForm((f) => ({ ...f, purchasePrice: parseThousand(e.target.value) }))} placeholder="0" />
               </div>
 
               {/* Selling Price */}
               <div className="space-y-1.5">
                 <Label htmlFor="pf-selling">Selling Price (Rp) <span className="text-[hsl(var(--destructive))]">*</span></Label>
-                <Input id="pf-selling" type="number" min="0" value={form.sellingPrice} onChange={(e) => setForm((f) => ({ ...f, sellingPrice: e.target.value }))} placeholder="0" className={errors.sellingPrice ? 'border-[hsl(var(--destructive))]' : ''} />
+                <Input id="pf-selling" type="text" value={formatThousand(form.sellingPrice)} onChange={(e) => setForm((f) => ({ ...f, sellingPrice: parseThousand(e.target.value) }))} placeholder="0" className={errors.sellingPrice ? 'border-[hsl(var(--destructive))]' : ''} />
                 {errors.sellingPrice && <p className="text-xs text-[hsl(var(--destructive))]">{errors.sellingPrice}</p>}
               </div>
 

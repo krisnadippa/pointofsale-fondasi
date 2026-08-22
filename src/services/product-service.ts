@@ -59,11 +59,42 @@ export function findByBarcode(barcode: string): Product | undefined {
   return storageGetByBarcode(barcode)
 }
 
+export function generateProductSku(categoryId: string): string {
+  const products = getProducts()
+  const cats = getCategories()
+  const cat = cats.find((c) => c.id === categoryId)
+
+  // Create prefix from category name (e.g. Minuman -> MIN, Snacks -> SNA)
+  let prefix = 'PRD'
+  if (cat && cat.name) {
+    const cleanName = cat.name.toUpperCase().replace(/[^A-Z]/g, '')
+    if (cleanName.length >= 3) {
+      prefix = cleanName.slice(0, 3)
+    } else if (cleanName.length > 0) {
+      prefix = cleanName.padEnd(3, 'X')
+    }
+  }
+
+  // Count existing items in this category
+  const catProducts = products.filter((p) => p.categoryId === categoryId)
+  const count = catProducts.length + 1
+  
+  let sku = `${prefix}-${String(count).padStart(3, '0')}`
+  let attempt = 1
+  while (products.some((p) => p.sku === sku)) {
+    sku = `${prefix}-${String(count + attempt).padStart(3, '0')}`
+    attempt++
+  }
+  return sku
+}
+
 export function createProduct(
   data: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'isActive'>
 ): Product {
+  const sku = data.sku.trim() || generateProductSku(data.categoryId)
   const product: Product = {
     ...data,
+    sku,
     id: `prod-${nanoid(8)}`,
     isActive: true,
     createdAt: new Date().toISOString(),

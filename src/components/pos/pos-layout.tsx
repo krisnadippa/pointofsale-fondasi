@@ -26,6 +26,8 @@ import type { Product } from '@/types/product'
 import type { Transaction } from '@/types/transaction'
 import { getActiveProducts } from '@/services/product-service'
 import { useRouter } from 'next/navigation'
+import { QuantityDialog } from './quantity-dialog'
+import { MobileCartDialog } from './mobile-cart-dialog'
 
 export function POSLayout() {
   const router = useRouter()
@@ -37,6 +39,8 @@ export function POSLayout() {
   const [searchQuery, setSearchQuery] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [selectedProductForQty, setSelectedProductForQty] = useState<Product | null>(null)
+  const [mobileCartOpen, setMobileCartOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -67,7 +71,7 @@ export function POSLayout() {
         const product = findByBarcode(searchQuery.trim())
         if (product) {
           addItem({ productId: product.id, productName: product.name, barcode: product.barcode, price: product.sellingPrice, quantity: 1 })
-          toast({ title: `${product.name} added`, variant: 'success' })
+          toast({ title: '✓ Added to cart', variant: 'success' })
           setSearchQuery('')
           setFilteredProducts(products.slice(0, 20))
           searchRef.current?.select()
@@ -85,7 +89,7 @@ export function POSLayout() {
       const product = findByBarcode(barcode)
       if (product) {
         addItem({ productId: product.id, productName: product.name, barcode: product.barcode, price: product.sellingPrice, quantity: 1 })
-        toast({ title: `${product.name} added to cart`, variant: 'success' })
+        toast({ title: '✓ Added to cart', variant: 'success' })
       } else {
         setNotFoundBarcode(barcode)
       }
@@ -95,10 +99,9 @@ export function POSLayout() {
 
   const handleProductClick = useCallback(
     (product: Product) => {
-      addItem({ productId: product.id, productName: product.name, barcode: product.barcode, price: product.sellingPrice, quantity: 1 })
-      toast({ title: `${product.name} added`, variant: 'success' })
+      setSelectedProductForQty(product)
     },
-    [addItem]
+    []
   )
 
   const subtotal = items.reduce((s, i) => s + i.subtotal, 0)
@@ -147,10 +150,45 @@ export function POSLayout() {
         />
       )}
 
-      {/* Desktop layout */}
-      <div className="flex h-[calc(100vh-var(--header-height))] overflow-hidden">
+      {selectedProductForQty && (
+        <QuantityDialog
+          product={selectedProductForQty}
+          onClose={() => setSelectedProductForQty(null)}
+          onConfirm={(qty) => {
+            addItem({
+              productId: selectedProductForQty.id,
+              productName: selectedProductForQty.name,
+              barcode: selectedProductForQty.barcode,
+              price: selectedProductForQty.sellingPrice,
+              quantity: qty,
+            })
+            toast({
+              title: '✓ Added to cart',
+              variant: 'success',
+            })
+            setSelectedProductForQty(null)
+          }}
+        />
+      )}
+
+      <MobileCartDialog
+        isOpen={mobileCartOpen}
+        items={items}
+        subtotal={subtotal}
+        onClose={() => setMobileCartOpen(false)}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeItem}
+        onClearCart={clearCart}
+        onCheckout={() => {
+          setMobileCartOpen(false)
+          setCheckoutOpen(true)
+        }}
+      />
+
+      {/* POS main container */}
+      <div className="flex h-[calc(100vh-var(--header-height)-56px)] lg:h-[calc(100vh-var(--header-height))] overflow-hidden">
         {/* Left panel */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden border-r border-[hsl(var(--border))]">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:border-r border-[hsl(var(--border))]">
           {/* Search + scan bar */}
           <div className="flex gap-2 p-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--card))]">
             <div className="relative flex-1">
@@ -178,7 +216,7 @@ export function POSLayout() {
           </div>
 
           {/* Product grid */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className={`flex-1 overflow-y-auto p-4 ${items.length > 0 ? 'pb-16 lg:pb-4' : ''}`}>
             {filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 gap-2">
                 <Package size={32} className="text-[hsl(var(--muted-foreground))] opacity-40" />
@@ -314,9 +352,9 @@ export function POSLayout() {
             <p className="text-xs text-[hsl(var(--muted-foreground))]">{items.length} item{items.length > 1 ? 's' : ''}</p>
             <p className="text-sm font-semibold">{formatRupiah(subtotal)}</p>
           </div>
-          <Button onClick={() => setCheckoutOpen(true)} className="gap-2">
+          <Button onClick={() => setMobileCartOpen(true)} className="gap-2">
             <ShoppingCart size={16} />
-            Checkout
+            Lihat Keranjang
           </Button>
         </div>
       )}
