@@ -1,7 +1,7 @@
 /**
  * Plays a standard scanner beep sound using Web Audio API.
- * Frequency: 1400Hz (typical crisp retail scanner beep)
- * Duration: 100ms
+ * Frequency: 2000Hz (high-pitch hardware piezo buzzer sound)
+ * Duration: 80ms (short, crisp beep)
  */
 export function playScanBeep() {
   try {
@@ -15,18 +15,22 @@ export function playScanBeep() {
     oscillator.connect(gainNode)
     gainNode.connect(audioCtx.destination)
 
+    // A sine wave at high frequency mimics the clean piezo buzzer of a scanner
     oscillator.type = 'sine'
-    // 1400Hz is a typical frequency for scanner beeps
-    oscillator.frequency.setValueAtTime(1400, audioCtx.currentTime)
+    oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime)
     
-    // Low volume (15%) to avoid being too loud and abrasive
-    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime)
-    
-    // Smooth ramp down to 0 at the end to prevent any speaker pops/clicks
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1)
+    const duration = 0.08 // 80ms
+    const volume = 0.12   // 12% volume
+
+    // Play at constant volume (flat envelope)
+    gainNode.gain.setValueAtTime(volume, audioCtx.currentTime)
+    // Hold the volume constant until just before the end
+    gainNode.gain.setValueAtTime(volume, audioCtx.currentTime + duration - 0.01)
+    // Quick ramp down in the final 10ms to prevent popping/clicking
+    gainNode.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + duration)
 
     oscillator.start(audioCtx.currentTime)
-    oscillator.stop(audioCtx.currentTime + 0.1)
+    oscillator.stop(audioCtx.currentTime + duration)
   } catch (error) {
     console.warn('Play scan beep failed:', error)
   }
