@@ -5,6 +5,7 @@ import { BrowserMultiFormatReader } from '@zxing/browser'
 import { X, SwitchCamera, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
+import { playScanBeep } from '@/lib/utils/audio'
 
 interface BarcodeScannerProps {
   onDetected: (barcode: string) => void
@@ -80,6 +81,7 @@ export function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeScannerPr
             lastScanRef.current = { code, time: now }
             setDetectedCode(code)
             setStatus('detected')
+            playScanBeep()
 
             // Stop scanning after success
             setTimeout(() => {
