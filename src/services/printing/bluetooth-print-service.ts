@@ -169,6 +169,7 @@ class EscPosBuilder {
 
   init(): this {
     this.buffer.push(0x1b, 0x40) // ESC @ (Initialize)
+    this.buffer.push(0x1b, 0x74, 0x00) // ESC t 0 (Code page: PC437 / Standard)
     return this
   }
 
@@ -198,17 +199,18 @@ class EscPosBuilder {
   }
 
   text(str: string): this {
-    // Convert string to bytes (ASCII / CP437)
-    for (let i = 0; i < str.length; i++) {
-      const code = str.charCodeAt(i)
-      this.buffer.push(code > 127 ? 63 : code) // replace non-ascii with '?'
+    // Convert string to bytes
+    const encoder = new TextEncoder()
+    const bytes = encoder.encode(str)
+    for (let i = 0; i < bytes.length; i++) {
+      this.buffer.push(bytes[i])
     }
     return this
   }
 
   newLine(count = 1): this {
     for (let i = 0; i < count; i++) {
-      this.buffer.push(0x0a) // LF
+      this.buffer.push(0x0d, 0x0a) // CR + LF to flush thermal line buffer
     }
     return this
   }
@@ -232,8 +234,8 @@ class EscPosBuilder {
   }
 
   feedAndCut(): this {
-    this.newLine(3)
-    this.buffer.push(0x1d, 0x56, 0x42, 0x00) // GS V 66 0 (Cut paper)
+    this.newLine(4)
+    this.buffer.push(0x1d, 0x56, 0x42, 0x00) // GS V 66 0 (Cut paper if supported)
     return this
   }
 
