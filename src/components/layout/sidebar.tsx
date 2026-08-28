@@ -32,10 +32,83 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { isCollapsed, toggleCollapse } = useSidebarStore()
+  const { isCollapsed, toggleCollapse, isMobileOpen, setMobileOpen } = useSidebarStore()
+
+  // 5 quick navigation items for mobile bottom bar
+  const MOBILE_BOTTOM_ITEMS = [
+    { href: '/pos', label: 'Kasir', icon: ScanBarcode },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/products', label: 'Produk', icon: Package },
+    { href: '/transactions', label: 'Riwayat', icon: ReceiptText },
+    { href: '/settings', label: 'Setting', icon: Settings },
+  ] as const
 
   return (
     <>
+      {/* Mobile Drawer Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar Drawer */}
+      <aside
+        className={cn(
+          "fixed top-0 bottom-0 left-0 z-50 w-64 bg-[hsl(var(--card))] border-r border-[hsl(var(--border))] flex flex-col transition-transform duration-200 ease-in-out lg:hidden",
+          isMobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        )}
+      >
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between h-[var(--header-height)] px-4 border-b border-[hsl(var(--border))]">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/images/fondasi1.png"
+              alt="Fondasi Logo"
+              style={{ width: '26px', height: '26px', objectFit: 'contain' }}
+            />
+            <span className="text-sm font-semibold tracking-tight text-[hsl(var(--foreground))]">
+              Fondasi POS
+            </span>
+          </div>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="p-1 rounded-md text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))]"
+            aria-label="Close menu"
+          >
+            <ChevronLeft size={18} />
+          </button>
+        </div>
+
+        {/* Drawer Nav List */}
+        <nav className="flex-1 py-3 px-2 overflow-y-auto">
+          <ul className="space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+              const Icon = item.icon
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm transition-colors',
+                      isActive
+                        ? 'bg-[hsl(var(--primary))] text-white font-medium shadow-sm'
+                        : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]'
+                    )}
+                  >
+                    <Icon size={18} className="shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+      </aside>
+
       {/* Desktop sidebar */}
       <aside
         className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-30 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] transition-all duration-200"
@@ -105,7 +178,7 @@ export function Sidebar() {
       {/* Mobile bottom navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-[hsl(var(--border))] bg-[hsl(var(--card))] safe-area-bottom">
         <div className="flex items-center justify-around px-1 py-1">
-          {NAV_ITEMS.slice(0, 5).map((item) => {
+          {MOBILE_BOTTOM_ITEMS.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             const Icon = item.icon
             return (
@@ -115,13 +188,13 @@ export function Sidebar() {
                 className={cn(
                   'flex flex-col items-center gap-1 px-2 py-1.5 rounded-[var(--radius)] transition-colors min-w-[52px]',
                   isActive
-                    ? 'text-[hsl(var(--primary))]'
+                    ? 'text-[hsl(var(--primary))] font-semibold'
                     : 'text-[hsl(var(--muted-foreground))]'
                 )}
                 aria-label={item.label}
               >
-                <Icon size={20} />
-                <span className="text-[10px] font-medium leading-none">{item.label.split(' ')[0]}</span>
+                <Icon size={19} />
+                <span className="text-[10px] leading-none">{item.label}</span>
               </Link>
             )
           })}
