@@ -11,18 +11,17 @@ export interface PrintService {
 function buildReceiptHtml(transaction: Transaction): string {
   const settings = getSettings()
   const is58 = settings.receiptWidth === '58mm'
-  const logoUrl = typeof window !== 'undefined' ? `${window.location.origin}/images/fondasi1.png` : '/images/fondasi1.png'
 
   const itemsHtml = transaction.items
     .map(
       (item) => `
-      <div style="padding-top: 2px; padding-bottom: 2px; border-bottom: 1px dotted #ccc;">
-        <div style="font-size: ${is58 ? '8.5px' : '10.5px'}; font-weight: bold; word-break: break-word; text-align: left; line-height: 1.15;">
+      <div style="padding: 1.5px 0; border-bottom: 1px dotted #888;">
+        <div style="font-size: ${is58 ? '10.5px' : '12px'}; font-weight: bold; word-break: break-word; text-align: left; line-height: 1.2;">
           ${item.productName}
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: ${is58 ? '8px' : '9.5px'}; line-height: 1.2;">
+        <div style="display: flex; justify-content: space-between; font-size: ${is58 ? '10px' : '11px'}; line-height: 1.2; margin-top: 1px;">
           <span>${item.quantity} x ${formatRupiah(item.price)}</span>
-          <span style="font-weight: bold;">${formatRupiah(item.subtotal)}</span>
+          <span style="font-weight: bold; white-space: nowrap;">${formatRupiah(item.subtotal)}</span>
         </div>
       </div>`
     )
@@ -43,7 +42,7 @@ function buildReceiptHtml(transaction: Transaction): string {
       <title>Struk ${transaction.invoiceNumber}</title>
       <style>
         @page {
-          margin: 0 !important;
+          margin: 0mm !important;
           size: auto;
         }
         * {
@@ -54,65 +53,54 @@ function buildReceiptHtml(transaction: Transaction): string {
           print-color-adjust: exact;
         }
         html, body {
-          width: 100%;
-          height: auto !important;
-          min-height: 0 !important;
+          width: 100% !important;
           margin: 0 !important;
           padding: 0 !important;
           background: #fff;
           color: #000;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-          font-size: ${is58 ? '8.5px' : '10.5px'};
-          line-height: 1.2;
+          font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace;
+          font-size: ${is58 ? '10px' : '11.5px'};
+          line-height: 1.25;
+          -webkit-font-smoothing: none;
+          text-rendering: geometricPrecision;
         }
         .receipt-wrapper {
-          width: ${is58 ? '38mm' : '68mm'};
-          max-width: ${is58 ? '38mm' : '68mm'};
-          margin: 0 auto;
-          padding: 0 0 1mm 0;
-          text-align: center;
+          width: ${is58 ? '44mm' : '72mm'};
+          max-width: ${is58 ? '44mm' : '72mm'};
+          margin: 0 !important;
+          padding: 0 1mm 1mm 0 !important;
+          text-align: left;
           box-sizing: border-box;
         }
         .center {
           text-align: center !important;
         }
-        .left {
-          text-align: left !important;
-        }
-        .right {
-          text-align: right !important;
-          white-space: nowrap;
-        }
         .bold {
           font-weight: bold;
         }
-        .logo-img {
-          display: block;
-          margin: 0 auto 2px auto;
-          max-width: ${is58 ? '65px' : '100px'};
-          max-height: 24px;
-          object-fit: contain;
-          filter: grayscale(100%) contrast(180%);
+        .header-box {
+          text-align: center;
+          margin-bottom: 2px;
         }
         .brand-title {
-          font-size: ${is58 ? '9.5px' : '12px'};
+          font-size: ${is58 ? '13px' : '15px'};
           font-weight: 900;
-          letter-spacing: 0.3px;
+          letter-spacing: 0.5px;
           text-align: center;
           margin-bottom: 1px;
         }
         .store-title {
-          font-size: ${is58 ? '9px' : '11px'};
+          font-size: ${is58 ? '11px' : '13px'};
           font-weight: bold;
           text-align: center;
           margin-bottom: 1px;
           text-transform: uppercase;
         }
         .store-sub {
-          font-size: ${is58 ? '7.5px' : '9px'};
+          font-size: ${is58 ? '9px' : '10.5px'};
           text-align: center;
-          line-height: 1.15;
-          color: #222;
+          line-height: 1.2;
+          color: #000;
         }
         .divider {
           border-top: 1px dashed #000;
@@ -122,38 +110,39 @@ function buildReceiptHtml(transaction: Transaction): string {
         .row-flex {
           display: flex;
           justify-content: space-between;
-          font-size: ${is58 ? '8px' : '9.5px'};
+          font-size: ${is58 ? '9.5px' : '11px'};
           line-height: 1.25;
-          padding: 0.5px 0;
+          padding: 1px 0;
         }
-        .total-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: ${is58 ? '10px' : '12px'};
-          font-weight: 900;
-          padding: 2px 0;
+        .total-box {
           border-top: 1px dashed #000;
           border-bottom: 1px dashed #000;
-          margin: 2px 0;
+          padding: 2px 0;
+          margin: 3px 0;
+        }
+        .total-box .row-flex {
+          font-size: ${is58 ? '12px' : '14px'} !important;
+          font-weight: 900 !important;
         }
         .footer-note {
           text-align: center;
-          font-size: ${is58 ? '7.5px' : '8.5px'};
-          line-height: 1.15;
-          margin-top: 2px;
+          font-size: ${is58 ? '8.5px' : '9.5px'};
+          line-height: 1.2;
+          margin-top: 3px;
           padding-bottom: 2px;
         }
         @media print {
           html, body {
             width: 100% !important;
-            height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
+            -webkit-font-smoothing: none;
           }
           .receipt-wrapper {
-            width: ${is58 ? '38mm' : '68mm'} !important;
-            max-width: ${is58 ? '38mm' : '68mm'} !important;
-            margin: 0 auto !important;
+            width: ${is58 ? '44mm' : '72mm'} !important;
+            max-width: ${is58 ? '44mm' : '72mm'} !important;
+            margin-left: 0 !important;
+            margin-right: auto !important;
             padding: 0 !important;
           }
         }
@@ -161,9 +150,8 @@ function buildReceiptHtml(transaction: Transaction): string {
     </head>
     <body>
       <div class="receipt-wrapper">
-        <!-- Logo & Header -->
-        <div class="center" style="margin-bottom: 2px;">
-          <img src="${logoUrl}" alt="Logo" class="logo-img" onerror="this.style.display='none'" />
+        <!-- Brand & Store Header -->
+        <div class="header-box">
           <div class="brand-title">FONDASI CREATIVE</div>
           <div class="store-title">${settings.storeName}</div>
           <div class="store-sub">${settings.storeAddress}</div>
@@ -190,7 +178,11 @@ function buildReceiptHtml(transaction: Transaction): string {
         <div class="row-flex"><span>Subtotal</span><span>${formatRupiah(transaction.subtotal)}</span></div>
         ${transaction.discount > 0 ? `<div class="row-flex"><span>Diskon</span><span>-${formatRupiah(transaction.discount)}</span></div>` : ''}
         ${transaction.tax > 0 ? `<div class="row-flex"><span>Pajak</span><span>${formatRupiah(transaction.tax)}</span></div>` : ''}
-        <div class="total-row"><span>TOTAL</span><span>${formatRupiah(transaction.total)}</span></div>
+
+        <div class="total-box">
+          <div class="row-flex"><span>TOTAL</span><span>${formatRupiah(transaction.total)}</span></div>
+        </div>
+
         <div class="row-flex"><span>Bayar (${paymentLabel[transaction.paymentMethod] ?? 'TUNAI'})</span><span>${formatRupiah(transaction.paidAmount)}</span></div>
         <div class="row-flex"><span class="bold">Kembali</span><span class="bold">${formatRupiah(transaction.changeAmount)}</span></div>
 
@@ -199,7 +191,7 @@ function buildReceiptHtml(transaction: Transaction): string {
         <!-- Footer -->
         <div class="footer-note">
           <div class="bold">TERIMA KASIH</div>
-          <div style="color: #333;">Barang yang dibeli tidak dapat ditukar</div>
+          <div style="color: #000; margin-top: 1px;">Barang yang dibeli tidak dapat ditukar</div>
         </div>
       </div>
     </body>
