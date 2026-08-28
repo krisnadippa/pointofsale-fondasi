@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, RotateCcw, AlertTriangle } from 'lucide-react'
+import { Save, RotateCcw, AlertTriangle, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -75,19 +75,44 @@ export function SettingsClient() {
 
       {/* Receipt & billing */}
       <div className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 space-y-4">
-        <h2 className="text-sm font-semibold border-b border-[hsl(var(--border))] pb-3">Receipt & Billing</h2>
+        <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-3">
+          <div>
+            <h2 className="text-sm font-semibold">Receipt & Printer Settings</h2>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Configure thermal paper size and test print output</p>
+          </div>
+        </div>
         <div className="space-y-1.5">
-          <Label htmlFor="set-receiptWidth">Receipt Width</Label>
+          <Label htmlFor="set-receiptWidth">Paper Width (Ukuran Kertas Thermal)</Label>
           <Select value={form.receiptWidth} onValueChange={(v) => setForm((f) => ({ ...f, receiptWidth: v as '58mm' | '80mm' }))}>
             <SelectTrigger id="set-receiptWidth"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="58mm">58mm</SelectItem>
-              <SelectItem value="80mm">80mm</SelectItem>
+              <SelectItem value="58mm">58mm (Printer Mini / Portable Bluetooth)</SelectItem>
+              <SelectItem value="80mm">80mm (Printer Thermal Desktop / Kasir Standar)</SelectItem>
             </SelectContent>
           </Select>
         </div>
         {field('taxRate', 'Tax Rate (%)', 'number', '0')}
         {field('defaultDiscount', 'Default Discount (Rp)', 'number', '0')}
+
+        <div className="pt-2 flex flex-wrap gap-2 items-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              saveSettings(form)
+              import('@/services/printing/print-service').then((m) => m.printTestReceipt())
+            }}
+            className="gap-2 text-xs"
+            id="test-print-receipt"
+          >
+            <Printer size={14} />
+            Test Print Receipt (Uji Cetak Struk)
+          </Button>
+          <span className="text-[11px] text-[hsl(var(--muted-foreground))]">
+            Pastikan printer thermal dipilih di dialog browser print
+          </span>
+        </div>
       </div>
 
       <Button onClick={handleSave} disabled={saving} className="gap-2" id="save-settings">

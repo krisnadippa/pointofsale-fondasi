@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, ReceiptText } from 'lucide-react'
+import { Search, ReceiptText, Printer } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,6 +11,7 @@ import { formatDateTime } from '@/lib/formatters/date'
 import { getTransactions } from '@/lib/storage/transactions'
 import type { Transaction } from '@/types/transaction'
 import { ensureSeedData } from '@/services/product-service'
+import { printReceipt } from '@/services/printing/print-service'
 
 const paymentLabel: Record<string, string> = {
   cash: 'Cash', qris: 'QRIS', debit: 'Debit', credit: 'Credit',
@@ -90,6 +91,16 @@ export function TransactionTable() {
               <div className="flex justify-between text-sm">
                 <span className="text-[hsl(var(--muted-foreground))]">Cashier</span>
                 <span>{selected.cashierName}</span>
+              </div>
+              <div className="pt-2">
+                <Button
+                  onClick={() => printReceipt(selected)}
+                  variant="outline"
+                  className="w-full gap-2 text-xs"
+                >
+                  <Printer size={14} />
+                  Print Receipt (Cetak Struk)
+                </Button>
               </div>
             </div>
           </div>
