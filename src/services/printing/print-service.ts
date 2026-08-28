@@ -237,32 +237,31 @@ function executePrint(html: string): void {
   }
 }
 
-import { printDirectBluetoothReceipt, printDirectBluetoothTest } from './bluetooth-print-service'
+import { printDirectBluetoothReceipt, printDirectBluetoothTest, getConnectedBluetoothDevice } from './bluetooth-print-service'
 
 class HybridPrintService implements PrintService {
   async printReceipt(transaction: Transaction): Promise<void> {
     const settings = getSettings()
-    if (settings.printMethod === 'bluetooth') {
-      try {
-        await printDirectBluetoothReceipt(transaction)
-        return
-      } catch (err: unknown) {
-        console.warn('Bluetooth print failed, falling back to browser print:', err)
-      }
+    const btConnected = getConnectedBluetoothDevice()
+
+    // If bluetooth mode is selected or bluetooth printer is currently connected, print strictly via Bluetooth
+    if (settings.printMethod === 'bluetooth' || btConnected) {
+      await printDirectBluetoothReceipt(transaction)
+      return
     }
+
+    // Otherwise use browser print (for USB cable / desktop)
     const html = buildReceiptHtml(transaction)
     executePrint(html)
   }
 
   async printTestReceipt(): Promise<void> {
     const settings = getSettings()
-    if (settings.printMethod === 'bluetooth') {
-      try {
-        await printDirectBluetoothTest()
-        return
-      } catch (err: unknown) {
-        console.warn('Bluetooth test print failed, falling back to browser print:', err)
-      }
+    const btConnected = getConnectedBluetoothDevice()
+
+    if (settings.printMethod === 'bluetooth' || btConnected) {
+      await printDirectBluetoothTest()
+      return
     }
 
     const dummyTransaction: Transaction = {

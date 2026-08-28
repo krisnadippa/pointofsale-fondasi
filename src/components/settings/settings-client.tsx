@@ -40,8 +40,10 @@ export function SettingsClient() {
     try {
       const name = await connectBluetoothPrinter()
       setBtDevice(name)
-      setForm((f) => ({ ...f, printMethod: 'bluetooth' }))
-      toast({ title: `Terhubung ke ${name}`, variant: 'success' })
+      const updated = { ...form, printMethod: 'bluetooth' as const }
+      setForm(updated)
+      saveSettings(updated)
+      toast({ title: `Terhubung ke ${name}`, description: 'Mode cetak otomatis diset ke Bluetooth', variant: 'success' })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       toast({ title: 'Gagal koneksi Bluetooth', description: msg, variant: 'error' })
