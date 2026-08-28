@@ -11,16 +11,23 @@ export interface PrintService {
 function buildReceiptHtml(transaction: Transaction): string {
   const settings = getSettings()
   const is58 = settings.receiptWidth === '58mm'
+  const logoUrl = typeof window !== 'undefined' ? `${window.location.origin}/images/fondasi1.png` : '/images/fondasi1.png'
 
   const itemsHtml = transaction.items
     .map(
       (item) => `
       <tr>
-        <td colspan="2" style="padding-top:4px;font-size:${is58 ? '11px' : '12px'};font-weight:600;word-break:break-word;">${item.productName}</td>
+        <td colspan="2" style="padding-top: 5px; font-size: ${is58 ? '11px' : '12px'}; font-weight: bold; word-break: break-word; text-align: left;">
+          ${item.productName}
+        </td>
       </tr>
       <tr>
-        <td style="font-size:${is58 ? '10px' : '11px'};color:#333;">${item.quantity} x ${formatRupiah(item.price)}</td>
-        <td style="text-align:right;font-size:${is58 ? '10px' : '11px'};font-weight:500;">${formatRupiah(item.subtotal)}</td>
+        <td style="font-size: ${is58 ? '10px' : '11px'}; color: #222; text-align: left; padding-bottom: 4px;">
+          ${item.quantity} x ${formatRupiah(item.price)}
+        </td>
+        <td style="text-align: right; font-size: ${is58 ? '10px' : '11px'}; font-weight: 600; padding-bottom: 4px;">
+          ${formatRupiah(item.subtotal)}
+        </td>
       </tr>`
     )
     .join('')
@@ -34,14 +41,14 @@ function buildReceiptHtml(transaction: Transaction): string {
 
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="id">
     <head>
       <meta charset="utf-8">
-      <title>Receipt ${transaction.invoiceNumber}</title>
+      <title>Struk ${transaction.invoiceNumber}</title>
       <style>
         @page {
           margin: 0;
-          size: ${is58 ? '58mm auto' : '80mm auto'};
+          size: auto;
         }
         * {
           margin: 0;
@@ -50,26 +57,69 @@ function buildReceiptHtml(transaction: Transaction): string {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-        body {
-          font-family: 'Courier New', Courier, monospace, sans-serif;
-          font-size: ${is58 ? '11px' : '12px'};
-          line-height: 1.3;
-          color: #000;
-          width: ${is58 ? '48mm' : '72mm'};
-          margin: 0 auto;
-          padding: 8px 4px;
+        html, body {
+          width: 100%;
           background: #fff;
+          color: #000;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: ${is58 ? '11px' : '12px'};
+          line-height: 1.35;
         }
-        .center { text-align: center; }
-        .right { text-align: right; }
-        .bold { font-weight: bold; }
+        .receipt-wrapper {
+          width: 100%;
+          max-width: ${is58 ? '48mm' : '72mm'};
+          margin: 0 auto;
+          padding: 6px 2px 24px 2px;
+          text-align: center;
+        }
+        .center {
+          text-align: center !important;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .left {
+          text-align: left !important;
+        }
+        .right {
+          text-align: right !important;
+        }
+        .bold {
+          font-weight: bold;
+        }
+        .logo-img {
+          display: block;
+          margin: 0 auto 5px auto;
+          max-width: ${is58 ? '120px' : '150px'};
+          max-height: 44px;
+          object-fit: contain;
+        }
+        .brand-title {
+          font-size: ${is58 ? '13px' : '15px'};
+          font-weight: bold;
+          letter-spacing: 0.5px;
+          text-align: center;
+          margin-bottom: 2px;
+        }
+        .store-title {
+          font-size: ${is58 ? '11px' : '13px'};
+          font-weight: bold;
+          text-align: center;
+          margin-bottom: 2px;
+          text-transform: uppercase;
+        }
+        .store-sub {
+          font-size: ${is58 ? '9.5px' : '11px'};
+          text-align: center;
+          line-height: 1.3;
+          color: #222;
+        }
         .divider {
           border-top: 1px dashed #000;
           margin: 6px 0;
           width: 100%;
         }
         .divider-double {
-          border-top: 1px double #000;
+          border-top: 2px solid #000;
           margin: 6px 0;
           width: 100%;
         }
@@ -78,63 +128,125 @@ function buildReceiptHtml(transaction: Transaction): string {
           border-collapse: collapse;
         }
         td {
-          padding: 1px 0;
           vertical-align: top;
+          padding: 1.5px 0;
         }
-        .totals td {
-          font-size: ${is58 ? '11px' : '12px'};
+        .meta-table td {
+          font-size: ${is58 ? '10px' : '11px'};
+          padding: 1px 0;
+        }
+        .calc-table td {
+          font-size: ${is58 ? '10.5px' : '12px'};
           padding: 2px 0;
         }
-        .grand-total td {
-          font-size: ${is58 ? '13px' : '14px'};
+        .calc-table .total-row td {
+          font-size: ${is58 ? '13px' : '15px'};
           font-weight: bold;
           padding: 4px 0;
         }
+        .footer-note {
+          text-align: center;
+          font-size: ${is58 ? '9.5px' : '10.5px'};
+          line-height: 1.35;
+          margin-top: 4px;
+        }
         @media print {
-          body {
+          html, body {
             width: 100%;
-            padding: 4px 2px;
+            margin: 0;
+            padding: 0;
+          }
+          .receipt-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 4px 2px 20px 2px;
           }
         }
       </style>
     </head>
     <body>
-      <div class="center" style="margin-bottom: 6px;">
-        <img src="/images/fondasi1.png" alt="Fondasi Creative Logo" style="height: 32px; object-fit: contain; margin-bottom: 3px; display: block; margin-left: auto; margin-right: auto;" onerror="this.style.display='none'" />
-        <div style="font-weight:bold;font-size:${is58 ? '13px' : '15px'};letter-spacing: 0.5px;">FONDASI CREATIVE</div>
-        <div style="font-weight:bold;font-size:${is58 ? '11px' : '12px'};color:#111;">${settings.storeName.toUpperCase()}</div>
-        <div style="font-size:${is58 ? '10px' : '11px'};">${settings.storeAddress}</div>
-        <div style="font-size:${is58 ? '10px' : '11px'};">Telp: ${settings.storePhone}</div>
-      </div>
+      <div class="receipt-wrapper">
+        <!-- Logo & Header -->
+        <div class="center" style="margin-bottom: 6px;">
+          <img src="${logoUrl}" alt="Logo" class="logo-img" onerror="this.style.display='none'" />
+          <div class="brand-title">FONDASI CREATIVE</div>
+          <div class="store-title">${settings.storeName}</div>
+          <div class="store-sub">${settings.storeAddress}</div>
+          <div class="store-sub">Telp/WA: ${settings.storePhone}</div>
+        </div>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <div style="font-size:${is58 ? '10px' : '11px'};">
-        <div style="display:flex;justify-content:space-between;"><span>No:</span><span class="bold">${transaction.invoiceNumber}</span></div>
-        <div style="display:flex;justify-content:space-between;"><span>Tgl:</span><span>${formatDateTime(transaction.createdAt)}</span></div>
-        <div style="display:flex;justify-content:space-between;"><span>Kasir:</span><span>${transaction.cashierName}</span></div>
-      </div>
+        <!-- Meta Info -->
+        <table class="meta-table">
+          <tr>
+            <td class="left">No. Struk</td>
+            <td class="right bold">${transaction.invoiceNumber}</td>
+          </tr>
+          <tr>
+            <td class="left">Tanggal</td>
+            <td class="right">${formatDateTime(transaction.createdAt)}</td>
+          </tr>
+          <tr>
+            <td class="left">Kasir</td>
+            <td class="right">${transaction.cashierName}</td>
+          </tr>
+        </table>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <table>${itemsHtml}</table>
+        <!-- Items -->
+        <table>
+          ${itemsHtml}
+        </table>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <table class="totals">
-        <tr><td>SUBTOTAL</td><td class="right">${formatRupiah(transaction.subtotal)}</td></tr>
-        ${transaction.discount > 0 ? `<tr><td>DISKON</td><td class="right">-${formatRupiah(transaction.discount)}</td></tr>` : ''}
-        ${transaction.tax > 0 ? `<tr><td>PAJAK</td><td class="right">${formatRupiah(transaction.tax)}</td></tr>` : ''}
-        <tr class="grand-total"><td>TOTAL</td><td class="right">${formatRupiah(transaction.total)}</td></tr>
-        <tr><td>${paymentLabel[transaction.paymentMethod] ?? 'BAYAR'}</td><td class="right">${formatRupiah(transaction.paidAmount)}</td></tr>
-        <tr><td>KEMBALI</td><td class="right">${formatRupiah(transaction.changeAmount)}</td></tr>
-      </table>
+        <!-- Totals & Payment -->
+        <table class="calc-table">
+          <tr>
+            <td class="left">Subtotal</td>
+            <td class="right">${formatRupiah(transaction.subtotal)}</td>
+          </tr>
+          ${
+            transaction.discount > 0
+              ? `<tr>
+                  <td class="left">Diskon</td>
+                  <td class="right">-${formatRupiah(transaction.discount)}</td>
+                </tr>`
+              : ''
+          }
+          ${
+            transaction.tax > 0
+              ? `<tr>
+                  <td class="left">Pajak</td>
+                  <td class="right">${formatRupiah(transaction.tax)}</td>
+                </tr>`
+              : ''
+          }
+          <tr class="total-row">
+            <td class="left" style="border-top: 1px dashed #000; border-bottom: 1px dashed #000;">TOTAL</td>
+            <td class="right" style="border-top: 1px dashed #000; border-bottom: 1px dashed #000;">${formatRupiah(transaction.total)}</td>
+          </tr>
+          <tr>
+            <td class="left" style="padding-top: 4px;">Bayar (${paymentLabel[transaction.paymentMethod] ?? 'TUNAI'})</td>
+            <td class="right" style="padding-top: 4px;">${formatRupiah(transaction.paidAmount)}</td>
+          </tr>
+          <tr>
+            <td class="left">Kembali</td>
+            <td class="right bold">${formatRupiah(transaction.changeAmount)}</td>
+          </tr>
+        </table>
 
-      <div class="divider-double"></div>
+        <div class="divider"></div>
 
-      <div class="center" style="font-size:${is58 ? '10px' : '11px'};padding-top:2px;">
-        <div class="bold">TERIMA KASIH</div>
-        <div>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan</div>
+        <!-- Footer -->
+        <div class="footer-note">
+          <div class="bold" style="margin-bottom: 2px;">TERIMA KASIH</div>
+          <div style="font-size: ${is58 ? '9px' : '10px'}; color: #333;">
+            Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan
+          </div>
+        </div>
       </div>
     </body>
     </html>
@@ -142,7 +254,6 @@ function buildReceiptHtml(transaction: Transaction): string {
 }
 
 function executePrint(html: string): void {
-  // Use hidden iframe to avoid popup blockers and handle print cleanly
   let iframe = document.getElementById('pos-receipt-iframe') as HTMLIFrameElement | null
   if (!iframe) {
     iframe = document.createElement('iframe')
@@ -162,7 +273,6 @@ function executePrint(html: string): void {
     doc.write(html)
     doc.close()
 
-    // Wait for images to load before printing
     iframe.contentWindow?.focus()
     setTimeout(() => {
       try {
@@ -177,7 +287,7 @@ function executePrint(html: string): void {
           setTimeout(() => fallbackWin.print(), 250)
         }
       }
-    }, 250)
+    }, 300)
   }
 }
 
