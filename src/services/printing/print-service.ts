@@ -16,19 +16,15 @@ function buildReceiptHtml(transaction: Transaction): string {
   const itemsHtml = transaction.items
     .map(
       (item) => `
-      <tr>
-        <td colspan="2" style="padding-top: 5px; font-size: ${is58 ? '11px' : '12px'}; font-weight: bold; word-break: break-word; text-align: left;">
+      <div style="padding-top: 2px; padding-bottom: 2px; border-bottom: 1px dotted #ccc;">
+        <div style="font-size: ${is58 ? '8.5px' : '10.5px'}; font-weight: bold; word-break: break-word; text-align: left; line-height: 1.15;">
           ${item.productName}
-        </td>
-      </tr>
-      <tr>
-        <td style="font-size: ${is58 ? '10px' : '11px'}; color: #222; text-align: left; padding-bottom: 4px;">
-          ${item.quantity} x ${formatRupiah(item.price)}
-        </td>
-        <td style="text-align: right; font-size: ${is58 ? '10px' : '11px'}; font-weight: 600; padding-bottom: 4px;">
-          ${formatRupiah(item.subtotal)}
-        </td>
-      </tr>`
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: ${is58 ? '8px' : '9.5px'}; line-height: 1.2;">
+          <span>${item.quantity} x ${formatRupiah(item.price)}</span>
+          <span style="font-weight: bold;">${formatRupiah(item.subtotal)}</span>
+        </div>
+      </div>`
     )
     .join('')
 
@@ -47,7 +43,7 @@ function buildReceiptHtml(transaction: Transaction): string {
       <title>Struk ${transaction.invoiceNumber}</title>
       <style>
         @page {
-          margin: 0;
+          margin: 0 !important;
           size: auto;
         }
         * {
@@ -59,107 +55,106 @@ function buildReceiptHtml(transaction: Transaction): string {
         }
         html, body {
           width: 100%;
+          height: auto !important;
+          min-height: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
           background: #fff;
           color: #000;
-          font-family: 'Courier New', Courier, monospace;
-          font-size: ${is58 ? '11px' : '12px'};
-          line-height: 1.35;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+          font-size: ${is58 ? '8.5px' : '10.5px'};
+          line-height: 1.2;
         }
         .receipt-wrapper {
-          width: 100%;
-          max-width: ${is58 ? '48mm' : '72mm'};
+          width: ${is58 ? '38mm' : '68mm'};
+          max-width: ${is58 ? '38mm' : '68mm'};
           margin: 0 auto;
-          padding: 6px 2px 24px 2px;
+          padding: 0 0 1mm 0;
           text-align: center;
+          box-sizing: border-box;
         }
         .center {
           text-align: center !important;
-          margin-left: auto;
-          margin-right: auto;
         }
         .left {
           text-align: left !important;
         }
         .right {
           text-align: right !important;
+          white-space: nowrap;
         }
         .bold {
           font-weight: bold;
         }
         .logo-img {
           display: block;
-          margin: 0 auto 5px auto;
-          max-width: ${is58 ? '120px' : '150px'};
-          max-height: 44px;
+          margin: 0 auto 2px auto;
+          max-width: ${is58 ? '65px' : '100px'};
+          max-height: 24px;
           object-fit: contain;
+          filter: grayscale(100%) contrast(180%);
         }
         .brand-title {
-          font-size: ${is58 ? '13px' : '15px'};
-          font-weight: bold;
-          letter-spacing: 0.5px;
+          font-size: ${is58 ? '9.5px' : '12px'};
+          font-weight: 900;
+          letter-spacing: 0.3px;
           text-align: center;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
         }
         .store-title {
-          font-size: ${is58 ? '11px' : '13px'};
+          font-size: ${is58 ? '9px' : '11px'};
           font-weight: bold;
           text-align: center;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
           text-transform: uppercase;
         }
         .store-sub {
-          font-size: ${is58 ? '9.5px' : '11px'};
+          font-size: ${is58 ? '7.5px' : '9px'};
           text-align: center;
-          line-height: 1.3;
+          line-height: 1.15;
           color: #222;
         }
         .divider {
           border-top: 1px dashed #000;
-          margin: 6px 0;
+          margin: 3px 0;
           width: 100%;
         }
-        .divider-double {
-          border-top: 2px solid #000;
-          margin: 6px 0;
-          width: 100%;
+        .row-flex {
+          display: flex;
+          justify-content: space-between;
+          font-size: ${is58 ? '8px' : '9.5px'};
+          line-height: 1.25;
+          padding: 0.5px 0;
         }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        td {
-          vertical-align: top;
-          padding: 1.5px 0;
-        }
-        .meta-table td {
-          font-size: ${is58 ? '10px' : '11px'};
-          padding: 1px 0;
-        }
-        .calc-table td {
-          font-size: ${is58 ? '10.5px' : '12px'};
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: ${is58 ? '10px' : '12px'};
+          font-weight: 900;
           padding: 2px 0;
-        }
-        .calc-table .total-row td {
-          font-size: ${is58 ? '13px' : '15px'};
-          font-weight: bold;
-          padding: 4px 0;
+          border-top: 1px dashed #000;
+          border-bottom: 1px dashed #000;
+          margin: 2px 0;
         }
         .footer-note {
           text-align: center;
-          font-size: ${is58 ? '9.5px' : '10.5px'};
-          line-height: 1.35;
-          margin-top: 4px;
+          font-size: ${is58 ? '7.5px' : '8.5px'};
+          line-height: 1.15;
+          margin-top: 2px;
+          padding-bottom: 2px;
         }
         @media print {
           html, body {
-            width: 100%;
-            margin: 0;
-            padding: 0;
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .receipt-wrapper {
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 4px 2px 20px 2px;
+            width: ${is58 ? '38mm' : '68mm'} !important;
+            max-width: ${is58 ? '38mm' : '68mm'} !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
           }
         }
       </style>
@@ -167,85 +162,44 @@ function buildReceiptHtml(transaction: Transaction): string {
     <body>
       <div class="receipt-wrapper">
         <!-- Logo & Header -->
-        <div class="center" style="margin-bottom: 6px;">
+        <div class="center" style="margin-bottom: 2px;">
           <img src="${logoUrl}" alt="Logo" class="logo-img" onerror="this.style.display='none'" />
           <div class="brand-title">FONDASI CREATIVE</div>
           <div class="store-title">${settings.storeName}</div>
           <div class="store-sub">${settings.storeAddress}</div>
-          <div class="store-sub">Telp/WA: ${settings.storePhone}</div>
+          <div class="store-sub">Telp: ${settings.storePhone}</div>
         </div>
 
         <div class="divider"></div>
 
         <!-- Meta Info -->
-        <table class="meta-table">
-          <tr>
-            <td class="left">No. Struk</td>
-            <td class="right bold">${transaction.invoiceNumber}</td>
-          </tr>
-          <tr>
-            <td class="left">Tanggal</td>
-            <td class="right">${formatDateTime(transaction.createdAt)}</td>
-          </tr>
-          <tr>
-            <td class="left">Kasir</td>
-            <td class="right">${transaction.cashierName}</td>
-          </tr>
-        </table>
+        <div class="row-flex"><span>No:</span><span class="bold">${transaction.invoiceNumber}</span></div>
+        <div class="row-flex"><span>Tgl:</span><span>${formatDateTime(transaction.createdAt)}</span></div>
+        <div class="row-flex"><span>Kasir:</span><span>${transaction.cashierName}</span></div>
 
         <div class="divider"></div>
 
         <!-- Items -->
-        <table>
+        <div>
           ${itemsHtml}
-        </table>
+        </div>
 
         <div class="divider"></div>
 
         <!-- Totals & Payment -->
-        <table class="calc-table">
-          <tr>
-            <td class="left">Subtotal</td>
-            <td class="right">${formatRupiah(transaction.subtotal)}</td>
-          </tr>
-          ${
-            transaction.discount > 0
-              ? `<tr>
-                  <td class="left">Diskon</td>
-                  <td class="right">-${formatRupiah(transaction.discount)}</td>
-                </tr>`
-              : ''
-          }
-          ${
-            transaction.tax > 0
-              ? `<tr>
-                  <td class="left">Pajak</td>
-                  <td class="right">${formatRupiah(transaction.tax)}</td>
-                </tr>`
-              : ''
-          }
-          <tr class="total-row">
-            <td class="left" style="border-top: 1px dashed #000; border-bottom: 1px dashed #000;">TOTAL</td>
-            <td class="right" style="border-top: 1px dashed #000; border-bottom: 1px dashed #000;">${formatRupiah(transaction.total)}</td>
-          </tr>
-          <tr>
-            <td class="left" style="padding-top: 4px;">Bayar (${paymentLabel[transaction.paymentMethod] ?? 'TUNAI'})</td>
-            <td class="right" style="padding-top: 4px;">${formatRupiah(transaction.paidAmount)}</td>
-          </tr>
-          <tr>
-            <td class="left">Kembali</td>
-            <td class="right bold">${formatRupiah(transaction.changeAmount)}</td>
-          </tr>
-        </table>
+        <div class="row-flex"><span>Subtotal</span><span>${formatRupiah(transaction.subtotal)}</span></div>
+        ${transaction.discount > 0 ? `<div class="row-flex"><span>Diskon</span><span>-${formatRupiah(transaction.discount)}</span></div>` : ''}
+        ${transaction.tax > 0 ? `<div class="row-flex"><span>Pajak</span><span>${formatRupiah(transaction.tax)}</span></div>` : ''}
+        <div class="total-row"><span>TOTAL</span><span>${formatRupiah(transaction.total)}</span></div>
+        <div class="row-flex"><span>Bayar (${paymentLabel[transaction.paymentMethod] ?? 'TUNAI'})</span><span>${formatRupiah(transaction.paidAmount)}</span></div>
+        <div class="row-flex"><span class="bold">Kembali</span><span class="bold">${formatRupiah(transaction.changeAmount)}</span></div>
 
         <div class="divider"></div>
 
         <!-- Footer -->
         <div class="footer-note">
-          <div class="bold" style="margin-bottom: 2px;">TERIMA KASIH</div>
-          <div style="font-size: ${is58 ? '9px' : '10px'}; color: #333;">
-            Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan
-          </div>
+          <div class="bold">TERIMA KASIH</div>
+          <div style="color: #333;">Barang yang dibeli tidak dapat ditukar</div>
         </div>
       </div>
     </body>
