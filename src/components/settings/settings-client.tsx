@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, RotateCcw, AlertTriangle, Printer } from 'lucide-react'
+import { Save, RotateCcw, AlertTriangle, Printer, Bluetooth, Check, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,15 +13,58 @@ import { saveTransactions } from '@/lib/storage/transactions'
 import { clearAll } from '@/lib/storage/base'
 import { toast } from '@/components/ui/toaster'
 import { DEFAULT_SETTINGS, type StoreSettings } from '@/types/settings'
+import {
+  isBluetoothSupported,
+  getConnectedBluetoothDevice,
+  connectBluetoothPrinter,
+  disconnectBluetoothPrinter,
+  printDirectBluetoothTest,
+} from '@/services/printing/bluetooth-print-service'
 
 export function SettingsClient() {
   const [form, setForm] = useState<StoreSettings>(DEFAULT_SETTINGS)
   const [saving, setSaving] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [btDevice, setBtDevice] = useState<string | null>(null)
+  const [btConnecting, setBtConnecting] = useState(false)
+  const [btSupported, setBtSupported] = useState(true)
 
   useEffect(() => {
     setForm(getSettings())
+    setBtSupported(isBluetoothSupported())
+    setBtDevice(getConnectedBluetoothDevice())
   }, [])
+
+  const handleConnectBt = async () => {
+    setBtConnecting(true)
+    try {
+      const name = await connectBluetoothPrinter()
+      setBtDevice(name)
+      setForm((f) => ({ ...f, printMethod: 'bluetooth' }))
+      toast({ title: `Terhubung ke ${name}`, variant: 'success' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      toast({ title: 'Gagal koneksi Bluetooth', description: msg, variant: 'error' })
+    } finally {
+      setBtConnecting(false)
+    }
+  }
+
+  const handleDisconnectBt = async () => {
+    await disconnectBluetoothPrinter()
+    setBtDevice(null)
+    toast({ title: 'Bluetooth printer terputus' })
+  }
+
+  const handleTestBt = async () => {
+    try {
+      await printDirectBluetoothTest()
+      toast({ title: 'Test print Bluetooth terkirim', variant: 'success' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      toast({ title: 'Gagal cetak Bluetooth', description: msg, variant: 'error' })
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -50,7 +93,7 @@ export function SettingsClient() {
       <Input
         id={`set-${id}`}
         type={type}
-        value={String(form[id])}
+        value={String(form[id] ?? '')}
         onChange={(e) => setForm((f) => ({ ...f, [id]: type === 'number' ? Number(e.target.value) : e.target.value }))}
         placeholder={placeholder}
       />
@@ -73,14 +116,92 @@ export function SettingsClient() {
         {field('cashierName', 'Default Cashier Name', 'text', 'e.g. Kasir')}
       </div>
 
-      {/* Receipt & billing */}
+      {/* Receipt & printer settings */}
       <div className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 space-y-4">
         <div className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-3">
           <div>
             <h2 className="text-sm font-semibold">Receipt & Printer Settings</h2>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Configure thermal paper size and test print output</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">Pengaturan printer thermal struk kasir</p>
           </div>
         </div>
+
+        {/* Print Method */}
+        <div className="space-y-1.5">
+          <Label htmlFor="set-printMethod">Metode Cetak Struk (Print Method)</Label>
+          <Select value={form.printMethod || 'browser'} onValueChange={(v) => setForm((f) => ({ ...f, printMethod: v as 'browser' | 'bluetooth' }))}>
+            <SelectTrigger id="set-printMethod"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bluetooth">⚡ Cetak Langsung Bluetooth (Sangat Cepat & Tanpa Dialog Print)</SelectItem>
+              <SelectItem value="browser">🖨️ Cetak via Browser (Kabel USB / Driver Windows)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Bluetooth Device Box */}
+        {form.printMethod === 'bluetooth' && (
+          <div className="rounded-lg border border-[hsl(var(--primary)/30)] bg-[hsl(var(--primary)/5)] p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bluetooth size={18} className="text-[hsl(var(--primary))]" />
+                <span className="text-xs font-semibold">Koneksi Bluetooth Thermal (HP / Laptop)</span>
+              </div>
+              {btDevice ? (
+                <span className="flex items-center gap-1 text-[11px] text-green-600 font-medium">
+                  <Check size={13} /> Terhubung: {btDevice}
+                </span>
+              ) : (
+                <span className="text-[11px] text-[hsl(var(--muted-foreground))]">Belum Terhubung</span>
+              )}
+            </div>
+
+            {!btSupported && (
+              <p className="text-xs text-amber-600">
+                Browser ini belum mendukung Web Bluetooth. Gunakan browser Google Chrome di Android atau Windows.
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {!btDevice ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleConnectBt}
+                  disabled={btConnecting || !btSupported}
+                  className="gap-2 text-xs"
+                >
+                  <Bluetooth size={14} />
+                  {btConnecting ? 'Mencari Perangkat...' : 'Hubungkan Printer Bluetooth (Scan)'}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTestBt}
+                    className="gap-2 text-xs"
+                  >
+                    <Printer size={14} />
+                    Test Print Bluetooth Langsung
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDisconnectBt}
+                    className="text-xs text-red-500 hover:text-red-600"
+                  >
+                    Putuskan
+                  </Button>
+                </>
+              )}
+            </div>
+            <p className="text-[11px] text-[hsl(var(--muted-foreground))] leading-relaxed">
+              * Mode Bluetooth mengirim perintah ESC/POS langsung ke printer thermal Gprinter/RPP02N dalam 1 detik tanpa popup dialog browser.
+            </p>
+          </div>
+        )}
+
         <div className="space-y-1.5">
           <Label htmlFor="set-receiptWidth">Paper Width (Ukuran Kertas Thermal)</Label>
           <Select value={form.receiptWidth} onValueChange={(v) => setForm((f) => ({ ...f, receiptWidth: v as '58mm' | '80mm' }))}>
@@ -109,9 +230,6 @@ export function SettingsClient() {
             <Printer size={14} />
             Test Print Receipt (Uji Cetak Struk)
           </Button>
-          <span className="text-[11px] text-[hsl(var(--muted-foreground))]">
-            Pastikan printer thermal dipilih di dialog browser print
-          </span>
         </div>
       </div>
 

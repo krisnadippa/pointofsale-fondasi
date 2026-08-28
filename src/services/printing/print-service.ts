@@ -237,13 +237,34 @@ function executePrint(html: string): void {
   }
 }
 
-class BrowserPrintService implements PrintService {
-  printReceipt(transaction: Transaction): void {
+import { printDirectBluetoothReceipt, printDirectBluetoothTest } from './bluetooth-print-service'
+
+class HybridPrintService implements PrintService {
+  async printReceipt(transaction: Transaction): Promise<void> {
+    const settings = getSettings()
+    if (settings.printMethod === 'bluetooth') {
+      try {
+        await printDirectBluetoothReceipt(transaction)
+        return
+      } catch (err: unknown) {
+        console.warn('Bluetooth print failed, falling back to browser print:', err)
+      }
+    }
     const html = buildReceiptHtml(transaction)
     executePrint(html)
   }
 
-  printTestReceipt(): void {
+  async printTestReceipt(): Promise<void> {
+    const settings = getSettings()
+    if (settings.printMethod === 'bluetooth') {
+      try {
+        await printDirectBluetoothTest()
+        return
+      } catch (err: unknown) {
+        console.warn('Bluetooth test print failed, falling back to browser print:', err)
+      }
+    }
+
     const dummyTransaction: Transaction = {
       id: 'test-print-' + Date.now(),
       invoiceNumber: 'INV-TEST-' + Math.floor(1000 + Math.random() * 9000),
@@ -279,11 +300,12 @@ class BrowserPrintService implements PrintService {
       cashierName: getSettings().cashierName || 'Kasir',
     }
 
-    this.printReceipt(dummyTransaction)
+    const html = buildReceiptHtml(dummyTransaction)
+    executePrint(html)
   }
 }
 
-export const printService: PrintService = new BrowserPrintService()
+export const printService: PrintService = new HybridPrintService()
 
 export function printReceipt(transaction: Transaction): void {
   printService.printReceipt(transaction)

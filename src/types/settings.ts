@@ -4,6 +4,7 @@ export interface StoreSettings {
   storePhone: string
   currency: string
   receiptWidth: '58mm' | '80mm'
+  printMethod: 'browser' | 'bluetooth'
   taxRate: number
   defaultDiscount: number
   cashierName: string
@@ -14,7 +15,8 @@ export const DEFAULT_SETTINGS: StoreSettings = {
   storeAddress: 'Jl. Contoh No. 1, Jakarta',
   storePhone: '021-12345678',
   currency: 'IDR',
-  receiptWidth: '80mm',
+  receiptWidth: '58mm',
+  printMethod: 'browser',
   taxRate: 0,
   defaultDiscount: 0,
   cashierName: 'Kasir',
